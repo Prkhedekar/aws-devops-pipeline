@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch: # manual "Run workflow" button
   push:
     branches: [main]
     paths: ["app/**", ".github/workflows/ci.yml"]

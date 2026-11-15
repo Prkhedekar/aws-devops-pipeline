@@ -1,6 +1,7 @@
 name: Infra checks
 
 on:
+  workflow_dispatch: # manual "Run workflow" button
   push:
     branches: [main]
     paths: ["infra/**", "deploy/**", ".github/workflows/infra.yml"]
