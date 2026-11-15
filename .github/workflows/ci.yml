@@ -56,6 +56,8 @@ jobs:
         run: |
           docker build \
             --build-arg APP_VERSION=${{ github.sha }} \
+            --label org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }} \
+            --label org.opencontainers.image.revision=${{ github.sha }} \
             -t ${{ steps.meta.outputs.image }}:${{ github.sha }} \
             -t ${{ steps.meta.outputs.image }}:latest \
             app
