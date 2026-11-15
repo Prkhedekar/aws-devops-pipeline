@@ -1,0 +1,28 @@
+# Local development: API + Postgres.   Run:  docker compose up --build
+# Then open http://localhost:8000/docs
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: tasks
+      POSTGRES_PASSWORD: tasks # local only - never reuse outside your laptop
+      POSTGRES_DB: tasks
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tasks"]
+      interval: 5s
+      retries: 10
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: ./app
+    environment:
+      DATABASE_URL: postgresql+psycopg://tasks:tasks@db:5432/tasks
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
