@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+local.db
+
+# Terraform - state and secrets must never be committed
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+backend.hcl
+*.tfplan
+crash.log
+
+# Kubernetes credentials
+kubeconfig
+*.kubeconfig
+k3s.yaml
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
