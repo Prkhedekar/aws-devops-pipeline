@@ -1,0 +1,6 @@
+apiVersion: v2
+name: taskapi
+description: Task API with an optional in-cluster Postgres, for k3s on AWS
+type: application
+version: 0.1.0
+appVersion: "dev"

@@ -1,0 +1,5 @@
+Task API deployed as release "{{ .Release.Name }}".
+
+Check rollout:   kubectl rollout status deployment/{{ include "taskapi.fullname" . }}
+Health check:    curl http://<elastic-ip>/health
+API docs:        http://<elastic-ip>/docs

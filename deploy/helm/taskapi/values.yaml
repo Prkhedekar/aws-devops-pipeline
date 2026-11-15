@@ -1,0 +1,40 @@
+image:
+  # CI pushes ghcr.io/<owner>/<repo>:<git-sha> and :latest. Must be lowercase.
+  repository: ghcr.io/prkhedekar/aws-devops-pipeline
+  tag: "" # defaults to Chart.appVersion; deploy with --set image.tag=<git-sha>
+  pullPolicy: IfNotPresent
+
+# Used only when autoscaling.enabled is false
+replicaCount: 2
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
+
+service:
+  port: 80
+
+ingress:
+  enabled: true
+  className: traefik # bundled with k3s
+  host: "" # empty = respond on any host, e.g. http://<elastic-ip>/
+
+# In-cluster Postgres for dev. Set enabled=false and externalDatabaseUrl to use RDS instead.
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  database: tasks
+  user: tasks
+  password: "" # required - pass at install time: --set postgres.password=<letters-and-digits>
+  storage: 2Gi
+
+externalDatabaseUrl: ""
