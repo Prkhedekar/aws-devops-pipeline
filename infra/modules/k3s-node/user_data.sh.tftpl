@@ -1,0 +1,7 @@
+#!/bin/bash
+# Runs once on first boot. Logs: /var/log/cloud-init-output.log
+set -euxo pipefail
+
+# Install k3s. Adding the Elastic IP to the API certificate lets kubectl connect from your laptop.
+# k3s includes Traefik (ingress), CoreDNS, metrics-server (for HPA) and local-path storage.
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --tls-san ${public_ip} --write-kubeconfig-mode 600" sh -
