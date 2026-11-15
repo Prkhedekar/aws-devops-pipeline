@@ -24,6 +24,8 @@ spec:
         # Restart pods when the DB secret changes
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
     spec:
+      # Must exceed the preStop pause below plus time to finish in-flight requests.
+      terminationGracePeriodSeconds: 30
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001
@@ -63,6 +65,14 @@ spec:
               port: http
             periodSeconds: 10
             failureThreshold: 3
+          # On shutdown, keep serving for a few seconds before receiving SIGTERM. Removing a pod
+          # from the Service and stopping the container happen in parallel, so without this pause
+          # the ingress can still route requests to a pod that has already exited (502s and
+          # dropped connections during rollouts - observed before this was added).
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 10
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
