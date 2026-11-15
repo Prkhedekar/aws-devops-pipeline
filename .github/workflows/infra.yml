@@ -1,0 +1,48 @@
+name: Infra checks
+
+on:
+  push:
+    branches: [main]
+    paths: ["infra/**", "deploy/**", ".github/workflows/infra.yml"]
+  pull_request:
+    paths: ["infra/**", "deploy/**", ".github/workflows/infra.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: Terraform fmt & validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.10"
+
+      - name: Format check
+        run: terraform fmt -check -recursive infra
+
+      - name: Validate
+        run: |
+          for dir in infra/bootstrap infra/envs/dev; do
+            echo "::group::$dir"
+            terraform -chdir="$dir" init -backend=false -input=false
+            terraform -chdir="$dir" validate
+            echo "::endgroup::"
+          done
+
+      # TODO(stage 1 stretch): run `terraform plan` on pull requests using AWS OIDC
+      # (aws-actions/configure-aws-credentials with role-to-assume) - no long-lived AWS keys.
+
+  helm:
+    name: Helm lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Lint chart
+        run: helm lint deploy/helm/taskapi --set postgres.password=ci-placeholder
+      - name: Render templates
+        run: helm template taskapi deploy/helm/taskapi --set postgres.password=ci-placeholder > /dev/null
