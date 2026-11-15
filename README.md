@@ -108,7 +108,8 @@ pytest
    kubectl get nodes
    ```
 6. **Publish the image:** push to `main` and the CI workflow pushes `ghcr.io/<you>/aws-devops-pipeline`.
-   On GitHub, open the package → *Package settings* → set visibility to **Public** so the cluster can pull it.
+   The image's `org.opencontainers.image.source` label links the package to this public repo, so it is
+   public too and the cluster can pull it without credentials.
 7. **Deploy:**
    ```bash
    helm upgrade --install taskapi deploy/helm/taskapi \
@@ -130,17 +131,22 @@ pytest
 
 **Stage 2 — Containers**
 - [x] Multi-stage, non-root Dockerfile and local docker compose
+- [x] Patched 5 HIGH CVEs flagged by Trivy (starlette 0.41.3 → 1.10.0, Debian zlib1g)
 - [ ] Record image size before/after the multi-stage build
 
 **Stage 3 — CI/CD**
 - [x] Lint, test, build, Trivy scan, push to GHCR
-- [ ] First green pipeline run
+- [x] First green pipeline run
+- [x] Trivy action pinned to a commit SHA (supply-chain hardening)
 - [ ] Branch protection on `main` requiring CI to pass
 
 **Stage 4 — Kubernetes**
 - [x] Helm chart with probes, HPA, zero-downtime rolling updates
 - [x] First deployment to the cluster
 - [x] Fixed startup race between replicas (advisory lock) and added a startup probe
+- [x] Deploying the CI-built image from GHCR
+- [x] Zero-downtime rollouts verified under load: ~1% failed requests before the `preStop` fix, 0 after
+  (see [runbook](docs/runbook.md#requests-failing-during-a-deploy))
 - [ ] GitOps with Argo CD (CI updates the image tag, Argo CD syncs)
 - [ ] Database migrations with Alembic as a Kubernetes Job
 - [ ] HTTPS with cert-manager and a domain
@@ -167,6 +173,10 @@ pytest
   does not need outbound internet access.
 - **S3 native state locking:** Terraform 1.10+ locks state in S3 directly, so no DynamoDB table is needed.
 - **Kubernetes API and SSH restricted to one IP:** only HTTP/HTTPS is open to the internet.
+- **CI blocks on fixable HIGH/CRITICAL vulnerabilities:** the first real build was blocked by 5 HIGH CVEs,
+  which were patched before anything was published.
+- **Graceful shutdown with a `preStop` pause:** removing a pod from the Service and stopping its container
+  happen in parallel; the pause keeps a terminating pod serving until the ingress stops routing to it.
 
 ## What I would improve next
 
